@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+__package git
+__package gpg
+__package wget
+
+state=$(cat "$__object/parameter/state")
+
+__file /etc/systemd/system/gitea.service --source "$__type/files/etc-systemd-system-gitea.service"
+
+export CDIST_ORDER_DEPENDENCY=1
+
+__user gitea --system --home /var/lib/gitea --state "$state"
+
+__directory /var/lib/gitea/ --owner gitea --group gitea --mode 770 --state "$state"
+__directory /var/log/gitea/ --owner gitea --group gitea --mode 770 --state "$state"
+
+for dir in custom data; do
+  __directory /var/lib/gitea/$dir --owner gitea --group gitea --state "$state"
+done
+
+__directory /etc/gitea --owner root --group gitea --mode 770 --state "$state"
+
+unset CDIST_ORDER_DEPENDENCY

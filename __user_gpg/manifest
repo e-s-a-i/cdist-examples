@@ -1,0 +1,19 @@
+#!/bin/sh -e
+export CDIST_ORDER_DEPENDENCY=1
+
+state=$(cat "$__object/parameter/state")
+user=$(cat "$__object/parameter/user") || user="$__object_id"
+home=$(cat "$__object/parameter/home") || [ -z "$home" ] && home="/home/$user"
+
+__package gpg
+__package libu2f-host0
+
+__directory "$home"/.gnupg --owner "$user" --mode 700
+
+for f in "$__type"/files/*; do
+require='__package/gpg' \
+__config_file "$home/.gnupg/$(echo "$f"|awk 'BEGIN{FS="/"}{print $NF}')"  --owner "$user" --source "$f"
+done
+
+#Probably needed:
+#export GPG_TTY=`tty`

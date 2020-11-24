@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+if ! ( systemctl status icinga2.service ); then
+    systemctl daemon-reload
+    systemctl enable icinga2
+    systemctl restart icinga2
+fi

@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+state=$(cat "$__object/parameter/state")
+service=$(cat "$__object/parameter/service") || service="$__object_id"
+port=$(cat "$__object/parameter/port")
+
+__line tor-$service --file=/etc/tor/torrc --onchange 'service tor restart' --state "$state" --line "$(cat <<EOF )"
+HiddenServiceDir /var/lib/tor/hidden_$service/
+HiddenServiceVersion 3
+HiddenServicePort $port 127.0.0.1:$port
+EOF

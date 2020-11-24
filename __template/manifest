@@ -1,0 +1,6 @@
+#!/bin/sh -e
+state=$(cat "$__object/parameter/state")
+
+export CDIST_ORDER_DEPENDENCY=1
+
+unset CDIST_ORDER_DEPENDENCY

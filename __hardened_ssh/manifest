@@ -1,0 +1,54 @@
+#!/bin/sh -e
+#https://stribika.github.io/2015/01/04/secure-secure-shell.html
+
+#WARNING: Generates new ssh host keys
+
+__key_value PermitRootLogin \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "without-password" \
+    --delimiter " " \
+    --state present
+
+__key_value HostKeyAlgorithms \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,ssh-rsa,ssh-rsa-cert-v01@openssh.com" \
+    --delimiter " " \
+    --state present
+
+__key_value KexAlgorithms \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256" \
+    --delimiter " " \
+    --state present
+
+__key_value Ciphers \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" \
+    --delimiter " " \
+    --state present
+
+__key_value MACs \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com" \
+    --delimiter " " \
+    --state present
+
+
+__key_value PasswordAuthentication \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "no" \
+    --delimiter " " \
+    --state present
+
+__key_value ChallengeResponseAuthentication \
+    --file /etc/ssh/sshd_config \
+    --onchange "service ssh restart || systemctl restart ssh" \
+    --value "no" \
+    --delimiter " " \
+    --state present

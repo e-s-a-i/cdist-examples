@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+state=$(cat "$__object/parameter/state")
+
+__package tor --version 0.3* --state "$state"

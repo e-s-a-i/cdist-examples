@@ -1,0 +1,18 @@
+#!/bin/sh -e
+version="$(cat "$__object/parameter/version")"
+installed_versions=$(cat "$__object/explorer/gitea_versions")
+#echo "$installed_versions" >&2 && exit 1
+case "$installed_versions" in
+  *$version* ) exit;;
+  *) true;;
+esac
+
+echo "wget https://dl.gitea.io/gitea/"$version"/gitea-"$version"-linux-amd64 -O /var/lib/gitea/gitea-$version"
+
+echo "chmod +x /var/lib/gitea/gitea-$version"
+echo "ln -sf /var/lib/gitea/gitea-$version /var/lib/gitea/gitea"
+echo "ln -sf /var/lib/gitea/gitea-$version /usr/local/bin/gitea"
+
+
+echo "systemctl enable gitea"
+echo "systemctl start gitea"

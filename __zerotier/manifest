@@ -1,0 +1,49 @@
+#!/bin/sh -e
+state=$(cat "$__object/parameter/state")
+
+os="$( cat "$__global/explorer/os" )"
+
+[ -z "$os" ] && exit 1
+
+#require='__package/lsb-release' \
+#codename=$(cat "$__object/parameter/codename") || codename=buster
+#[ -z "$codename" ] && exit 1
+
+require='__package/lsb-release' \
+codename=$(cat "$__object/parameter/codename") || codename="$( cat "$__global/explorer/lsb_codename" )"
+
+[ -z "$codename" ] && exit 1
+
+
+
+case "$os" in
+  debian)
+    true #sources="deb http://download.zerotier.com/debian/$codename $codename main"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+__apt_key 1657198823E52A61
+#__apt_key_uri syncthing --uri https://syncthing.net/release-key.txt --state "$state"
+
+#require='__apt_key/1657198823E52A61' \
+#__file /etc/apt/sources.list.d/zerotier.list \
+#    --owner root \
+#    --group root \
+#    --mode 644 \
+#    --onchange 'apt-get update' \
+#    --source - << EOF
+#$sources
+#EOF
+
+require='__apt_key/1657198823E52A61' \
+__apt_source zerotier --uri http://download.zerotier.com/debian/$codename --distribution $codename --component main --state "$state"
+
+require='__apt_source/zerotier' \
+__apt_update_index
+
+
+require='__apt_update_index' \
+__package zerotier-one

@@ -1,0 +1,1 @@
+cat /var/lib/zerotier-one/identity.public | cut -d : -f 1

@@ -1,0 +1,34 @@
+#!/bin/sh -e
+version="$(cat "$__object/parameter/version")"
+factorio_exists=$(cat "$__object/explorer/factorio_exists")
+
+if ! $factorio_exists; then
+cat <<EOF
+  cd /tmp/
+  wget --content-disposition https://www.factorio.com/get-download/"$version"/headless/linux64
+
+  filename="$(ls factorio*)"
+
+  #factorio_headless_x64_0.17.39.tar.xz
+  #factorio_version="$(echo $filename | awk -F_ '{printf $4}' | awk 'BEGIN{FS="."; OFS="."}{print $1,$2,$3}')"
+  #mkdir -p /opt/factorio-$factorio_version/
+  #chown factorio:factorio /opt/factorio-$factorio_version/
+  #cd /opt/factorio-$factorio_version/
+  #tar -xJf /tmp/$filename
+  #ln -s /opt/factorio-$factorio_version /opt/factorio
+  #rm /tmp/$filename
+
+  (/opt/factorio-init/factorio install /tmp/"$filename" && \
+  cp /opt/factorio/data/server-settings.example.json /opt/factorio/data/server-settings.json) \
+  || true
+  echo "source /opt/factorio-init/bash_autocomplete" >> ~/.bashrc
+
+  if ! ( systemctl status factorio.service ); then
+    systemctl daemon-reload
+    systemctl enable factorio
+    systemctl start factorio
+  fi
+EOF
+else
+  true
+fi

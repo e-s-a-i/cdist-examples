@@ -1,0 +1,9 @@
+#!/bin/sh -e
+hostname=$__target_fqdn #$(cat "$__global/explorer/hostname")
+identity=$(cat "$__object/explorer/get_zerotier_identity")
+
+if grep "$identity" ~/.cdist/inventory/"$hostname" >/dev/null; then
+  exit 0
+else
+  echo "$identity" >> ~/.cdist/inventory/"$hostname"
+fi

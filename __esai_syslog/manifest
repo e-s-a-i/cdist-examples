@@ -1,0 +1,16 @@
+#!/bin/sh -e
+
+case $__target_fqdn in
+    syslog*)
+        return
+    ;;
+esac
+required='__package/rsyslog' \
+__config_file /etc/rsyslog.d/90-syslog-example-com.conf \
+    --owner root \
+    --group root \
+    --mode 644 \
+    --onchange 'systemctl restart rsyslog' \
+    --source - <<EOF
+*.* @syslog.example.com:514
+EOF

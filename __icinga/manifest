@@ -1,0 +1,46 @@
+#!/bin/sh -e
+export CDIST_ORDER_DEPENDENCY=1
+
+state=$(cat "$__object/parameter/state")
+require='__package/lsb-release' \
+codename=$(cat "$__object/parameter/codename") || codename="$( cat "$__global/explorer/lsb_codename" )"
+
+[ -z "$codename" ] && exit 1
+
+case "$os" in
+  debian) true;;
+       *) exit 1;;
+esac
+
+__apt_key_uri icinga \
+        --name "Icinga Open Source Monitoring (Build server) <info@icinga.org>" \
+        --uri https://packages.icinga.com/icinga.key \
+        --state "$state"
+
+__apt_source icinga \
+   --uri http://packages.icinga.com/debian/ \
+   --distribution icinga-$codename \
+   --component main \
+   --state "$state"
+
+for p in \
+ icinga2 \
+ vim-icinga2 \
+ vim-addon-manager \
+ monitoring-plugins
+do
+ __package $p --state "$state"
+done
+
+require='__package/icinga2' \
+__start_on_boot icinga2
+require='__package/icinga2' \
+__file /etc/icinga2/icinga.conf --state "$state" --owner root --group root --mode 644 --onchange 'systemctl restart icinga2' --source "$__type/files/etc-icinga2-icinga.conf"
+
+#let us keep icinga2 running at all times
+require='__package/icinga2' \
+__directory /etc/systemd/system/icinga2.service.d --state "$state" --owner root --group root --mode 644
+require='__directory/etc/systemd/system/icinga2.service.d' \
+__config_file /etc/systemd/system/icinga2.service.d/override.conf --state "$state" --owner root --group root --mode 644 --source "$__type/files/etc-systemd-system-icinga2.service.d-override.conf"
+
+require="__package/${pkgname}" __file "${main_conf}" --mode 0644 \ 	--source - <<-EOF 	# Managed with cdist 	$([ -f "${__object}/parameter/config" ] && cat "${__object}/parameter/config") 	EOF

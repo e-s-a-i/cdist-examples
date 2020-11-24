@@ -1,0 +1,3 @@
+#!/bin/sh -e
+
+#Get new ssh host key hash and place in local known_hosts

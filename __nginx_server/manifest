@@ -1,0 +1,28 @@
+#!/bin/sh -e
+export CDIST_ORDER_DEPENDENCY=1
+#
+# 2019 Renee Undrits (esai@esai.io)
+#
+
+
+os=$(cat "$__global/explorer/os")
+
+case "$os" in
+  debian) true;;
+   *)
+      echo "OS not supported" >&2
+      exit 1
+   ;;
+esac
+
+state=$(cat "$__object/parameter/state")
+
+__package nginx --state "$state"
+
+__config_file /etc/nginx/nginx.conf --state "$state" --onchange 'service nginx restart' --source "$__type/files/etc_nginx_nginx.conf"
+
+__start_on_boot nginx --state "$state"
+
+__file /etc/nginx/sites-available/default --state "$state" --onchange 'service nginx restart' --source "$__type/files/etc-nginx-sites-available-default"
+
+unset CDIST_ORDER_DEPENDENCY

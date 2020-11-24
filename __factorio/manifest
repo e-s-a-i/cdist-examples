@@ -1,0 +1,27 @@
+#!/bin/sh -e
+state=$(cat "$__object/parameter/state")
+__package wget
+__package sudo
+__package xzip
+
+__user factorio --system --home /opt/factorio --state "$state"
+
+#require='__user/factorio' \
+#__directory /opt/factorio/ --owner factorio --group factorio --mode 750 --state "$state"
+
+require='__user/factorio' \
+__git /opt/factorio-init --source https://github.com/Bisa/factorio-init.git --owner factorio --state "$state"
+require='__user/factorio' \
+__git /opt/factorio-updater --source https://github.com/narc0tiq/factorio-updater --owner factorio --state "$state"
+
+require='__git//opt/factorio-init' \
+__file /opt/factorio-init/config --owner factorio --group factorio --mode 750 --state "$state" --source "$__type/files/opt-factorio-init-config"
+
+__file /root/.bashrc_local --source - <<EOF
+export PATH=$PATH:/opt/factorio-init/
+EOF
+
+__file /etc/systemd/system/factorio.service --owner root --group root --mode 750 --state "$state" --source "$__type/files/etc-systemd-system-factorio.service"
+
+require='__git//opt/factorio-init' \
+__link /etc/bash_completion.d/factorio --source /opt/factorio-init/bash_autocomplete --type symbolic

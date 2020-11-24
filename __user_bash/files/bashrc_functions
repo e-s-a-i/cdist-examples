@@ -1,0 +1,64 @@
+raid() { awk '/^md/ {printf "%s: ", $1}; /blocks/ {print $NF}'  /proc/mdstat; }
+
+ping-timestamped () {
+  #ping with timestamps
+  ping "$@" | while read pong; do
+    echo "$(date +"%T"): $pong";
+  done
+}
+
+mktmp () {
+  #Make a tmp dir and enter it
+  cd "$(mktemp -dp ~/tmp/)"
+}
+
+unlock_sed () {
+  #Self-encrypting drive unlock
+  sedutil-cli --setlockingrange 0 rw "$1" /dev/sdb
+  sedutil-cli --setmbrdone on "$1" /dev/sdb
+}
+
+dec () {
+  printf "%d\n" $1
+}
+hex () {
+  printf "0x%08x\n" "$1"
+}
+rot13 () {
+  echo "$@" | tr a-zA-Z n-za-mN-ZA-M;
+}
+
+swap () {
+  # swap 2 filenames around
+  if [ $# -ne 2 ]; then
+    echo "swap: 2 arguments needed"; return 1
+  fi
+  if [ ! -e $1 ]; then
+    echo "swap: $1 does not exist"; return 1
+  fi
+  if [ ! -e $2 ]; then
+    echo "swap: $2 does not exist"; return 1
+  fi
+  local TMPFILE=tmp.$$ ; mv $1 $TMPFILE ; mv $2 $1 ; mv $TMPFILE $2
+}
+
+catch22 () {
+  #netcat port 22
+  until nc -vzw 2 "$1" 22; do sleep 2; done
+}
+
+hosts () {
+  #iterate over list with command host
+  for host in $*; do
+    host $host;
+  done
+}
+
+defaultGatewayMAC {
+  #find the mac address of default route ip
+  cat /proc/net/arp | grep "$(ip r | grep -e '^default*' | awk '{print $3}') "  | awk '{print $4}'
+}
+defaultGatewayDevice {
+#find the name of default route device
+  ip r | sed -nr 's/^default.+dev\s([a-z0-9\.]+).+/\1/p'
+}

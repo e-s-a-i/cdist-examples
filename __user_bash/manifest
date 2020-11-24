@@ -1,0 +1,15 @@
+#!/bin/sh -e
+export CDIST_ORDER_DEPENDENCY=1
+
+__package bash
+
+user=$(cat "$__object/parameter/user") || user="$__object_id"
+home=$(cat "$__object/parameter/home") || [ -z "$home" ] && home="/home/$user"
+
+
+__file "$home/.bashrc"  --owner "$user" --source "$__type/files/bashrc"
+
+for f in "$__type"/files/bashrc_*; do
+  __file "$home"/.$(echo "$f"|awk 'BEGIN{FS="/"}{print $NF}')  --owner "$user" --source "$f"
+done
+unset CDIST_ORDER_DEPENDENCY

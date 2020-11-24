@@ -1,0 +1,2 @@
+#!/bin/sh -e
+echo 'zerotier-cli join *removed*'

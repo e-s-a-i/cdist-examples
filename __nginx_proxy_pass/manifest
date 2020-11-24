@@ -1,0 +1,56 @@
+#!/bin/sh -e
+
+os=$(cat "$__global/explorer/os")
+
+case "$os" in
+  debian) true;;
+   *)
+      echo "OS not supported" >&2
+      exit 1
+   ;;
+esac
+
+state=$(cat "$__object/parameter/state")
+port=$(cat "$__object/parameter/port")
+server_name=$(cat "$__object/parameter/server_name")
+proxy_pass=$(cat "$__object/parameter/proxy_pass")
+ssl_certificate=$(cat "$__object/parameter/ssl_certificate")
+ssl_certificate_key=$(cat "$__object/parameter/ssl_certificate_key")
+
+__file /etc/nginx/sites-available/"$server_name" --state "$state" --onchange 'service nginx restart' --source - << EOF
+#
+# Changes will be overwritten by cdist.
+#
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $server_name;
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen $port ssl;
+    server_name $server_name;
+
+    proxy_set_header HOST \$host;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+
+    ssl_certificate $ssl_certificate;
+    ssl_certificate_key $ssl_certificate_key;
+    ssl_protocols TLSv1.2; #TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    location / {
+        proxy_buffering off;
+        proxy_pass $proxy_pass;
+    }
+}
+EOF
+
+require="__file/etc/nginx/sites-available/"$server_name"" \
+__link /etc/nginx/sites-enabled/"$server_name" \
+   --source /etc/nginx/sites-available/"$server_name" \
+   --type symbolic \
+   --state "$state"

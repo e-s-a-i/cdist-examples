@@ -1,0 +1,5 @@
+server_name
+proxy_pass
+port
+ssl_certificate
+ssl_certificate_key
